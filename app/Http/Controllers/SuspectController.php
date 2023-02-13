@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Parent;
 use App\Models\Spouse;
 use App\Models\Suspect;
 use App\Models\Associate;
+use App\Models\SuspectParent;
 use Illuminate\Http\Request;
 use App\Models\TelephoneNumber;
 use Illuminate\Support\Facades\DB;
@@ -82,7 +82,7 @@ class SuspectController extends Controller
         }
         if ($request->has('parents')) {
             foreach ($request->parents as $parentData) {
-                $parent = parent::create([
+                $parent = SuspectParent::create([
                     'name' => $parentData['name'],
                     'residence' => $parentData['residence'],
                     'suspect_id' => $suspect->id,
@@ -92,7 +92,7 @@ class SuspectController extends Controller
                         TelephoneNumber::create([
                             'number' => $telephoneNumber,
                             'phoneable_id' => $parent->id,
-                            'phoneable_type' => parent::class,
+                            'phoneable_type' => SuspectParent::class,
                         ]);
                     }
                 }
