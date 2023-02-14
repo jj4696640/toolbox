@@ -22,11 +22,11 @@ class LoginController extends Controller
         ], 404);
     }
 
-    if (!$user->email_verified_at) {
-        return response()->json([
-            'message' => 'Email not verified'
-        ], 401);
-    }
+    // if (!$user->email_verified_at) {
+    //     return response()->json([
+    //         'message' => 'Email not verified'
+    //     ], 401);
+    // }
 
     if (!Hash::check($password, $user->password)) {
         return response()->json([
@@ -34,7 +34,7 @@ class LoginController extends Controller
         ], 401);
     }
 
-    $token = $user->createToken('AuthToken')->accessToken;
+    $token = $user->createToken('AuthToken')->plainTextToken;
 
     return response()->json([
         'token' => $token,
