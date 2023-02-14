@@ -9,32 +9,44 @@ class UserController extends Controller
 {
     public function changeStatus(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        try {
+            $user = User::findOrFail($id);
 
-        if ($request->status == 'active') {
-            $user->status = 'active';
-        } else if ($request->status == 'inactive') {
-            $user->status = 'inactive';
-        } else {
+            if ($request->status == 'active') {
+                $user->status = 'active';
+            } else if ($request->status == 'inactive') {
+                $user->status = 'inactive';
+            } else {
+                return response()->json([
+                    'message' => 'Invalid status'
+                ], 400);
+            }
+    
+            $user->save();
+    
             return response()->json([
-                'message' => 'Invalid status'
-            ], 400);
+                'message' => 'User status updated successfully'
+            ], 200);
+        } catch (\Exception $th) {
+            return response()->json([
+                'message' => $th->getMessage()
+            ]);
         }
-
-        $user->save();
-
-        return response()->json([
-            'message' => 'User status updated successfully'
-        ], 200);
     }
 
     public function index()
     {
-        $users = User::all();
+        try {
+            $users = User::paginate();
 
         return response()->json([
             'data' => $users
         ], 200);
+        } catch (\Exception $th) {
+            return response()->json([
+                'message' => $th->getMessage()
+            ]);
+        }
     }
 
     public function show($id)

@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SuspectController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\VerifyController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -61,23 +62,4 @@ Route::post('/users/register', [RegisterController::class, 'store']);
 Route::get('/users/verify/{token}', [VerifyController::class, 'verify']);
 
 // Login Route
-Route::post('/users/login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
-
-    $user = User::where('email', $request->email)->first();
-
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json([
-            'message' => 'Invalid credentials'
-        ], 401);
-    }
-
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'token' => $token
-    ], 200);
-});
+Route::post("/users/login", [LoginController::class, 'login']);
