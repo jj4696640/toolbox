@@ -21,4 +21,9 @@ class Spouse extends Model
     {
         return $this->belongsTo(Suspect::class);
     }
+
+    public function telephoneNumbers()
+    {
+        return $this->morphMany(TelephoneNumber::class, 'phoneable');
+    }
 }

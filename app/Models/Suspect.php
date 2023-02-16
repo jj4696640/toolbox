@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Image;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Suspect extends Model
 {
@@ -41,5 +42,30 @@ class Suspect extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(Image::class);
+    }
+
+    public function associates()
+    {
+        return $this->hasMany(Associate::class);
+    }
+
+    public function spouses()
+    {
+        return $this->hasMany(Spouse::class);
+    }
+
+    public function parents()
+    {
+        return $this->hasMany(SuspectParent::class);
+    }
+
+    public function telephoneNumbers()
+    {
+        return $this->morphMany(TelephoneNumber::class, 'phoneable');
     }
 }

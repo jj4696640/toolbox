@@ -10,6 +10,7 @@ class SuspectParent extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'parents';
     protected $fillable = [
         'name',
         'relationship',
@@ -20,5 +21,10 @@ class SuspectParent extends Model
     public function suspect ()
     {
         return $this->belongsTo(Suspect::class);
+    }
+
+    public function telephoneNumbers ()
+    {
+        return $this->morphMany(TelephoneNumber::class, 'phoneable');
     }
 }

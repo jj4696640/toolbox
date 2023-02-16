@@ -50,8 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/suspects', [SuspectController::class, 'index']);
     Route::get('/suspects/{id}', [SuspectController::class, 'show']);
     Route::post('/suspects', [SuspectController::class, 'store']);
-    Route::put('/suspects/{id}', [SuspectController::class, 'update']);
-    Route::delete('/suspects/{id}', [SuspectController::class, 'destroy']);
+    // Route::put('/suspects/{id}', [SuspectController::class, 'update']);
+    // Route::delete('/suspects/{id}', [SuspectController::class, 'destroy']);
     
 });
 

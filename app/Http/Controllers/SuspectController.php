@@ -14,6 +14,10 @@ class SuspectController extends Controller
 {
     public function store(Request $request)
     {
+
+        // Get the authenticated user
+        $user = $request->user();   
+
         $suspect = Suspect::create([
             'case_ref' => $request->case_ref,
             'station' => $request->station,
@@ -40,7 +44,7 @@ class SuspectController extends Controller
             'travel_history' => $request->travel_history,
             'previous_crime_records' => $request->previous_crime_records,
             'occupation' => $request->occupation,
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
 
         ]);
 
@@ -49,7 +53,7 @@ class SuspectController extends Controller
                 $associate = Associate::create([
                     'name' => $associateData['name'],
                     'residence' => $associateData['residence'],
-                    'case_id' => $suspect->id,
+                    'suspect_id' => $suspect->id,
                 ]);
                 if ($associateData['telephone_numbers']) {
                     foreach ($associateData['telephone_numbers'] as $telephoneNumber) {
@@ -65,8 +69,9 @@ class SuspectController extends Controller
         if ($request->has('spouses')) {
             foreach ($request->spouses as $spouseData) {
                 $spouse = Spouse::create([
-                    'name' => $associateData['name'],
-                    'residence' => $associateData['residence'],
+                    'name' => $spouseData['name'],
+                    'residence' => $spouseData['residence'],
+                    'relationship' => $spouseData['relationship'],
                     'suspect_id' => $suspect->id,
                 ]);
                 if ($spouseData['telephone_numbers']) {
@@ -85,6 +90,7 @@ class SuspectController extends Controller
                 $parent = SuspectParent::create([
                     'name' => $parentData['name'],
                     'residence' => $parentData['residence'],
+                    'relationship' => $spouseData['relationship'],
                     'suspect_id' => $suspect->id,
                 ]);
                 if ($parentData['telephone_numbers']) {
@@ -99,16 +105,55 @@ class SuspectController extends Controller
             }
         }
 
-        $images = $request->file('images');
+        if ($request->has('telephone_numbers')) {
+            foreach ($request->telephone_numbers as $telephoneNumber) {
+                TelephoneNumber::create([
+                    'number' => $telephoneNumber,
+                    'phoneable_id' => $suspect->id,
+                    'phoneable_type' => Suspect::class,
+                ]);
+            }
+        }
+
+        $left = $request->file('left');
+        $front = $request->file('front');
+        $right = $request->file('right');
+        $hind = $request->file('hind');
         $data = [];
 
-        foreach ($images as $image) {
-            $image_path = $image->store('public/images');
-
+        if ($left) {
+            $left_path = $left->store('public/images');
             $data[] = [
-                'image_path' => $image_path,
-                'position' => $request->position,
-                'suspect_id' => $request->suspect_id
+                'image_path' => $left_path,
+                'position' => 'left',
+                'suspect_id' => $suspect->id
+            ];
+        }
+
+        if ($front) {
+            $front_path = $front->store('public/images');
+            $data[] = [
+                'image_path' => $front_path,
+                'position' => 'front',
+                'suspect_id' => $suspect->id
+            ];
+        }
+
+        if ($right) {
+            $right_path = $right->store('public/images');
+            $data[] = [
+                'image_path' => $right_path,
+                'position' => 'right',
+                'suspect_id' => $suspect->id
+            ];
+        }
+
+        if ($hind) {
+            $hind_path = $hind->store('public/images');
+            $data[] = [
+                'image_path' => $hind_path,
+                'position' => 'hind',
+                'suspect_id' => $suspect->id
             ];
         }
 
@@ -132,7 +177,7 @@ class SuspectController extends Controller
 
     public function show($id)
     {
-        $suspect = Suspect::with("associates", "associates.phoneable", "parents", "parents.phoneable", "spouses", "spouses.phoneable", "suspects.phoneable", "suspects.images")->find($id);
+        $suspect = Suspect::with("associates", "associates.telephoneNumbers", "parents", "parents.telephoneNumbers", "spouses", "spouses.telephoneNumbers", "telephoneNumbers", "images")->find($id);
 
         return response()->json([
             'message' => 'Suspect retrieved successfully',
