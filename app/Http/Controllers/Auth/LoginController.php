@@ -18,8 +18,9 @@ class LoginController extends Controller
 
     if (!$user) {
         return response()->json([
+            'status' => false,
             'message' => 'User not found'
-        ], 404);
+        ]);
     }
 
     // if (!$user->email_verified_at) {
@@ -30,16 +31,18 @@ class LoginController extends Controller
 
     if (!Hash::check($password, $user->password)) {
         return response()->json([
-            'message' => 'Incorrect password'
-        ], 401);
+            'status' => false,
+            'message' => 'Incorrect password/username'
+        ]);
     }
 
     $token = $user->createToken('AuthToken')->plainTextToken;
 
     return response()->json([
+        'status' => true,
         'token' => $token,
         'user' => $user
-    ], 200);
+    ]);
 }
 
 }

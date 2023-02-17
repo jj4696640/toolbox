@@ -41,6 +41,7 @@ class RegisterController extends Controller
                 'directorate' => $validatedData['directorate'],
                 'office_role' => $validatedData['office_role'],
                 'password' => bcrypt($validatedData['password']),
+                'status' => 'inactive',
             ]);
     
             // $this->sendEmailVerification($user);
