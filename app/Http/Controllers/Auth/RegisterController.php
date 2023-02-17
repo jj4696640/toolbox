@@ -46,11 +46,13 @@ class RegisterController extends Controller
             // $this->sendEmailVerification($user);
     
             return response()->json([
+                'status' => true,
                 'message' => 'Successfully created user!',
                 'user' => $user,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
+                'status' => false,
                 'message' => $e->getMessage(),
             ]);
         }
