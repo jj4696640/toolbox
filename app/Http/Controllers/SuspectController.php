@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Spouse;
 use App\Models\Suspect;
 use App\Models\Associate;
-use App\Models\SuspectParent;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\SuspectParent;
 use App\Models\TelephoneNumber;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class SuspectController extends Controller
 {
@@ -90,7 +92,7 @@ class SuspectController extends Controller
                 $parent = SuspectParent::create([
                     'name' => $parentData['name'],
                     'residence' => $parentData['residence'],
-                    'relationship' => $spouseData['relationship'],
+                    'relationship' => $parentData['relationship'],
                     'suspect_id' => $suspect->id,
                 ]);
                 if ($parentData['telephone_numbers']) {
@@ -115,14 +117,14 @@ class SuspectController extends Controller
             }
         }
 
-        $left = $request->file('left');
-        $front = $request->file('front');
-        $right = $request->file('right');
-        $hind = $request->file('hind');
+        $left = $request->left;
+        $front = $request->front;
+        $right = $request->right;
+        $hind = $request->hind;
         $data = [];
 
         if ($left) {
-            $left_path = $left->store('public/images');
+            $left_path = $this->saveImage($left);
             $data[] = [
                 'image_path' => $left_path,
                 'position' => 'left',
@@ -131,7 +133,7 @@ class SuspectController extends Controller
         }
 
         if ($front) {
-            $front_path = $front->store('public/images');
+            $front_path = $this->saveImage($front);
             $data[] = [
                 'image_path' => $front_path,
                 'position' => 'front',
@@ -140,7 +142,7 @@ class SuspectController extends Controller
         }
 
         if ($right) {
-            $right_path = $right->store('public/images');
+            $right_path = $this->saveImage($right);
             $data[] = [
                 'image_path' => $right_path,
                 'position' => 'right',
@@ -149,7 +151,7 @@ class SuspectController extends Controller
         }
 
         if ($hind) {
-            $hind_path = $hind->store('public/images');
+            $hind_path = $this->saveImage($hind);
             $data[] = [
                 'image_path' => $hind_path,
                 'position' => 'hind',
@@ -161,13 +163,14 @@ class SuspectController extends Controller
 
         return response()->json([
             'message' => 'Suspect created successfully',
-            'suspect' => $suspect
+            'suspect' => $suspect,
+            $request->all()
         ], 201);
     }
 
     public function index()
     {
-        $suspects = Suspect::with("images")->get();
+        $suspects = Suspect::with("images")->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'message' => 'Suspects retrieved successfully',
@@ -183,5 +186,41 @@ class SuspectController extends Controller
             'message' => 'Suspect retrieved successfully',
             'suspect' => $suspect
         ], 200);
+    }
+
+    
+    private function saveImage($image)
+    {
+        // Check if image is valid base64 string
+        if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
+            // Take out the base64 encoded text without mime type
+            $image = substr($image, strpos($image, ',') + 1);
+            // Get file extension
+            $type = strtolower($type[1]); // jpg, png, gif
+
+            // Check if file is an image
+            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                throw new \Exception('invalid image type');
+            }
+            $image = str_replace(' ', '+', $image);
+            $image = base64_decode($image);
+
+            if ($image === false) {
+                throw new \Exception('base64_decode failed');
+            }
+        } else {
+            throw new \Exception('did not match data URI with image data');
+        }
+
+        $dir = 'images/';
+        $file = Str::random() . '.' . $type;
+        $absolutePath = public_path($dir);
+        $relativePath = $dir . $file;
+        if (!File::exists($absolutePath)) {
+            File::makeDirectory($absolutePath, 0755, true);
+        }
+        file_put_contents($relativePath, $image);
+
+        return $relativePath;
     }
 }
